@@ -107,7 +107,6 @@ class Block:
         self.next_coordinate_x = x
         self.next_coordinate_y = y
 
-
 class Board:
     def __init__(self):
         self.blocks = [Block(), ]
@@ -225,35 +224,35 @@ def mainmenu():
 def game():
     global FPS_CLOCK, WINDOW, FONT_OBJ, TITLE_OBJ, BLOCK_BOARD
 
-    pygame.init()    
+    pygame.init()
     FPS_CLOCK = pygame.time.Clock()
     WINDOW = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     BLOCK_BOARD = pygame.Rect(X_MARGIN - BOARD_OUTER_LINE_WIDTH, Y_MARGIN - BOARD_OUTER_LINE_WIDTH,
                               (BLOCK_SIZE + MARGIN_SIZE) * BOARD_WIDTH + BOARD_OUTER_LINE_WIDTH * 2 - MARGIN_SIZE,
                               (BLOCK_SIZE + MARGIN_SIZE) * BOARD_HEIGHT + BOARD_OUTER_LINE_WIDTH * 2 - MARGIN_SIZE)
-
     # Set Font
     FONT_OBJ = pygame.font.Font('res/fonts/Slate.ttf', FONT_SIZE)
     TITLE_OBJ = pygame.font.Font('res/fonts/PixelOperator-Bold.ttf', TITLE_SIZE)
 
     main_board = Board()
     title_text = 'Your Score: '
+    muted = False
     bg = pygame.image.load("res/background.jpg")
-    mute = pygame.image.load("res/mute.png").convert_alpha()
-    unmute = pygame.image.load("res/unmute.png").convert_alpha()
+    mute = pygame.image.load("res/unmute.png").convert_alpha()
+    unmute = pygame.image.load("res/mute.png").convert_alpha()
+    back = pygame.image.load("res/backbutton.png").convert_alpha()
 
     pygame.display.set_caption('2048 Game for MeAndTheBois™')
     pygame.mixer.music.load('res/mainmenu_music.mp3')
     pygame.mixer.music.play(-1)
     mainmenu()
 
-    muted = False
-
     # Main game loop
     while True:
         WINDOW.blit(bg, (0, 0))
-        if not muted: WINDOW.blit(mute, (20, 20))
-        else: WINDOW.blit(unmute, (20, 20))
+        WINDOW.blit(back, (20, 20))
+        if not muted: WINDOW.blit(mute, (725, 20))
+        else: WINDOW.blit(unmute, (725, 20))
         pygame.draw.rect(WINDOW, Color.DeepOrange.value, BLOCK_BOARD, BOARD_OUTER_LINE_WIDTH)
 
         for event in pygame.event.get():  # event handling loop
@@ -273,18 +272,19 @@ def game():
                 elif event.key in (K_DOWN, K_s):
                     slide_direction = Direction.Down
                     main_board.slide(slide_direction)
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = event.pos
-                if mute.get_rect().collidepoint(x, y):
-                    pygame.mixer.pause()
-                    muted = True
-                elif unmute.get_rect().collidepoint(x,y):
-                    pygame.mixer.unpause()
-                    muted = False
-                    
+
+        if is_clicked(725, 20, 50, 50):
+            pygame.time.wait(50)
+            if not muted: pygame.mixer.music.pause()
+            else: pygame.mixer.music.unpause()
+            muted = not muted
+
+        if is_clicked(20, 20, 50, 50):
+            pygame.time.wait(50)
+            mainmenu()
+
         current_score = main_board.get_max_score()
         draw_blocks(main_board)
-        
 
         if len(main_board.blocks) >= (BOARD_WIDTH * BOARD_HEIGHT):
             title = 'You Lose! Better luck next time!\n\nHit "Esc" to exit\nor any other key to restart.'
@@ -377,10 +377,21 @@ def button(text, colorname, x, y, w, h, tx, ty):
     click = pygame.mouse.get_pressed()
 
     # Detect mouse hover by comparing coordinates of box and mouse point
+    if is_hovering(x, y, w, h):
+        pygame.draw.rect(WINDOW, eval('Color.%s.value' % ("Light"+colorname)), [x, y, w, h])
+        display_text(text, (tx, ty), "res/fonts/PixelOperator8-Bold.ttf", "Black", 35)
+    if is_clicked(x, y, w, h): return True
+
+def is_clicked(x, y, w, h):
+    mouse = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
     for i, j in itertools.product(range(x, x+w+1), range(y, y+h+1)):
-        if i == mouse[0] and j == mouse[1]:
-            pygame.draw.rect(WINDOW, eval('Color.%s.value' % ("Light"+colorname)), [x, y, w, h])
-            display_text(text, (tx, ty), "res/fonts/PixelOperator8-Bold.ttf", "Black", 35)
-            if click[0]: return True
+        if i == mouse[0] and j == mouse[1] and click[0]: return True
+
+def is_hovering(x, y, w, h):
+    mouse = pygame.mouse.get_pos()
+    if mouse in [(x,y) for x,y in itertools.product(range(x,x+w+1), range(y,y+h+1))]:
+        print("yes")
+        return True
 
 if __name__ == "__main__": game()
