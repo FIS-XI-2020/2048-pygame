@@ -12,7 +12,7 @@ BOARD_HEIGHT = 4
 BOARD_OUTER_LINE_WIDTH = 4
 BLOCK_SIZE = 100
 MARGIN_SIZE = 20
-TITLE_SIZE = 55
+TITLE_SIZE = 60
 FONT_SIZE = 64
 RESULT_SIZE = 35
 WINDOW_WIDTH = 800
@@ -24,7 +24,7 @@ FPS = 30
 # check window size
 assert (BOARD_WIDTH * (BLOCK_SIZE + MARGIN_SIZE) < WINDOW_WIDTH) and \
        (BOARD_HEIGHT * (BLOCK_SIZE + MARGIN_SIZE) + TITLE_SIZE < WINDOW_HEIGHT), \
-       'window_size is much too small!'
+       'window_size is too small!'
 X_MARGIN = int((WINDOW_WIDTH - (BOARD_WIDTH * (BLOCK_SIZE + MARGIN_SIZE))) / 2)
 Y_MARGIN = int((WINDOW_HEIGHT - (BOARD_HEIGHT * (BLOCK_SIZE + MARGIN_SIZE))) / 2 + TITLE_SIZE / 2)
 TITLE_CENTER = (int(WINDOW_WIDTH / 2), int(Y_MARGIN / 2))
@@ -203,7 +203,9 @@ def mainmenu():
 
     while True:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: break                 # Quit when the user clicks the exit button
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
         WINDOW.blit(bg, (0, 0))
         WINDOW.blit(logo, (215, 75))
 
@@ -216,6 +218,9 @@ def mainmenu():
 
         pygame.display.update()
         FPS_CLOCK.tick(FPS)
+
+    pygame.quit()
+    sys.exit()
 
 def game():
     global FPS_CLOCK, WINDOW, FONT_OBJ, TITLE_OBJ, BLOCK_BOARD
@@ -234,15 +239,21 @@ def game():
     main_board = Board()
     title_text = 'Your Score: '
     bg = pygame.image.load("res/background.jpg")
+    mute = pygame.image.load("res/mute.png").convert_alpha()
+    unmute = pygame.image.load("res/unmute.png").convert_alpha()
 
     pygame.display.set_caption('2048 Game for MeAndTheBois™')
     pygame.mixer.music.load('res/mainmenu_music.mp3')
     pygame.mixer.music.play(-1)
     mainmenu()
 
+    muted = False
+
     # Main game loop
     while True:
         WINDOW.blit(bg, (0, 0))
+        if not muted: WINDOW.blit(mute, (20, 20))
+        else: WINDOW.blit(unmute, (20, 20))
         pygame.draw.rect(WINDOW, Color.DeepOrange.value, BLOCK_BOARD, BOARD_OUTER_LINE_WIDTH)
 
         for event in pygame.event.get():  # event handling loop
@@ -262,9 +273,18 @@ def game():
                 elif event.key in (K_DOWN, K_s):
                     slide_direction = Direction.Down
                     main_board.slide(slide_direction)
-
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = event.pos
+                if mute.get_rect().collidepoint(x, y):
+                    pygame.mixer.pause()
+                    muted = True
+                elif unmute.get_rect().collidepoint(x,y):
+                    pygame.mixer.unpause()
+                    muted = False
+                    
         current_score = main_board.get_max_score()
         draw_blocks(main_board)
+        
 
         if len(main_board.blocks) >= (BOARD_WIDTH * BOARD_HEIGHT):
             title = 'You Lose! Better luck next time!\n\nHit "Esc" to exit\nor any other key to restart.'
