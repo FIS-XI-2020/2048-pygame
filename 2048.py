@@ -21,10 +21,10 @@ MAX_SCORE = 2048
 INIT_SCORE = 2
 FPS = 30
 
-# check window size
+# Check window size
 assert (BOARD_WIDTH * (BLOCK_SIZE + MARGIN_SIZE) < WINDOW_WIDTH) and \
        (BOARD_HEIGHT * (BLOCK_SIZE + MARGIN_SIZE) + TITLE_SIZE < WINDOW_HEIGHT), \
-       'window_size is too small!'
+       'Window size is too small!'
 X_MARGIN = int((WINDOW_WIDTH - (BOARD_WIDTH * (BLOCK_SIZE + MARGIN_SIZE))) / 2)
 Y_MARGIN = int((WINDOW_HEIGHT - (BOARD_HEIGHT * (BLOCK_SIZE + MARGIN_SIZE))) / 2 + TITLE_SIZE / 2)
 TITLE_CENTER = (int(WINDOW_WIDTH / 2), int(Y_MARGIN / 2))
@@ -115,7 +115,7 @@ class Board:
 
     def handle_block_slide(self, direction):
         self.next_direction = direction
-        # check each row/column (depend on direction)
+        # check each row/column (depending on direction)
         for line_col_idx in range(SLIDE_SWITCHER[direction][5]):
             # blocks in same row/column, idx in current row/column
             current_blocks = [(block, getattr(block, SLIDE_SWITCHER[direction][4])) for block in self.blocks if
@@ -140,10 +140,6 @@ class Board:
                             setattr(block[0], 'next_' + SLIDE_SWITCHER[direction][4],
                                     getattr(current_blocks[previous_idx][0],
                                             'next_' + SLIDE_SWITCHER[direction][4]) + SLIDE_SWITCHER[direction][2])
-                assert ((0 <= block[0].next_coordinate_x < BOARD_WIDTH) and
-                        (0 <= block[0].next_coordinate_y < BOARD_HEIGHT)), \
-                    'invalid next move: ' + str((block[0].next_coordinate_x, block[0].next_coordinate_y)) + \
-                    ' while current block is ' + str((block[0].coordinate_x, block[0].coordinate_y)) + '.'
                 previous_idx += 1
 
     def slide_block(self):
@@ -155,7 +151,6 @@ class Board:
                 block.slide_enable = False
 
     def merge_block(self, direction):
-        # TODO(Rundong) loop below can be optimised
         for line_col_idx in range(SLIDE_SWITCHER[direction][5]):
             current_blocks = [(block, getattr(block, SLIDE_SWITCHER[direction][4]))
                               for block in self.blocks if getattr(block, SLIDE_SWITCHER[direction][3]) == line_col_idx]
@@ -174,9 +169,7 @@ class Board:
 
     def generate_block(self):
         if len(self.blocks) >= (BOARD_WIDTH * BOARD_HEIGHT): return
-        all_position = []
-        for x in range(BOARD_WIDTH):
-            for y in range(BOARD_HEIGHT): all_position.append((x, y))
+        all_position = [(x, y) for x, y in itertools.product(range(BOARD_WIDTH), range(BOARD_HEIGHT))]
         for block in self.blocks:
             (x, y) = (block.coordinate_x, block.coordinate_y)
             assert ((x, y) in all_position), 'contain block(s) with invalid location ' + str((x, y))
@@ -191,28 +184,40 @@ class Board:
         self.merge_block(direction)
         self.generate_block()
 
-    def get_max_score(self): return max([block.score for block in self.blocks])
-
-    def get_block_num(self): return len(self.blocks)
+    get_max_score = lambda self: max([block.score for block in self.blocks])
+    get_block_num = lambda self: len(self.blocks)
 
 def mainmenu():
     ''' Main Menu of the game '''
-    bg = pygame.image.load("res/background.jpg")
-    logo = pygame.image.load("res/logo.png").convert_alpha()
+    BG_OBJ = pygame.image.load("res/background.jpg")
+    LOGO_OBJ = pygame.image.load("res/logo.png").convert_alpha()
+    MUTE_OBJ = pygame.image.load("res/unmute.png").convert_alpha()
+    UNMUTE_OBJ = pygame.image.load("res/mute.png").convert_alpha()
+
+    muted = False
 
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-        WINDOW.blit(bg, (0, 0))
-        WINDOW.blit(logo, (215, 75))
+        WINDOW.blit(BG_OBJ, (0, 0))
+        WINDOW.blit(LOGO_OBJ, (215, 75))
 
-        play = button('Play', "Green", 335, 200, 165, 60, 410, 230)
-        highscore = button('High Scores', "Blue", 245, 305, 355, 60, 425, 335)
-        quitbutton = button('Quit', "Red", 335, 410, 165, 60, 410, 440)
+        if not muted: WINDOW.blit(MUTE_OBJ, (725, 20))
+        else: WINDOW.blit(UNMUTE_OBJ, (725, 20))
 
-        if quitbutton: break
+        if is_clicked(725, 20, 50, 50):
+            pygame.time.wait(100)
+            if not muted: pygame.mixer.music.pause()
+            else: pygame.mixer.music.unpause()
+            muted = not muted
+
+        play = draw_button('Play', "Green", 335, 200, 165, 60, 410, 230)
+        highscore = draw_button('High Scores', "Blue", 245, 305, 355, 60, 425, 335)
+        quit = draw_button('Quit', "Red", 335, 410, 165, 60, 410, 440)
+
+        if quit: break
         elif play: return
 
         pygame.display.update()
@@ -237,10 +242,11 @@ def game():
     main_board = Board()
     title_text = 'Your Score: '
     muted = False
-    bg = pygame.image.load("res/background.jpg")
-    mute = pygame.image.load("res/unmute.png").convert_alpha()
-    unmute = pygame.image.load("res/mute.png").convert_alpha()
-    back = pygame.image.load("res/backbutton.png").convert_alpha()
+
+    BG_OBJ = pygame.image.load("res/background.jpg")
+    MUTE_OBJ = pygame.image.load("res/unmute.png").convert_alpha()
+    UNMUTE_OBJ = pygame.image.load("res/mute.png").convert_alpha()
+    BACK_OBJ = pygame.image.load("res/backbutton.png").convert_alpha()
 
     pygame.display.set_caption('2048 Game for MeAndTheBois™')
     pygame.mixer.music.load('res/mainmenu_music.mp3')
@@ -249,38 +255,33 @@ def game():
 
     # Main game loop
     while True:
-        WINDOW.blit(bg, (0, 0))
-        WINDOW.blit(back, (20, 20))
-        if not muted: WINDOW.blit(mute, (725, 20))
-        else: WINDOW.blit(unmute, (725, 20))
+        WINDOW.blit(BG_OBJ, (0, 0))
+        WINDOW.blit(BACK_OBJ, (20, 20))
+        if not muted: WINDOW.blit(MUTE_OBJ, (725, 20))
+        else: WINDOW.blit(UNMUTE_OBJ, (725, 20))
         pygame.draw.rect(WINDOW, Color.DeepOrange.value, BLOCK_BOARD, BOARD_OUTER_LINE_WIDTH)
 
-        for event in pygame.event.get():  # event handling loop
-            if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
+        for event in pygame.event.get():
+            if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
             elif event.type == KEYUP:
-                if event.key in (K_LEFT, K_a):
-                    slide_direction = Direction.Left
-                    main_board.slide(slide_direction)
-                elif event.key in (K_RIGHT, K_d):
-                    slide_direction = Direction.Right
-                    main_board.slide(slide_direction)
-                elif event.key in (K_UP, K_w):
-                    slide_direction = Direction.Up
-                    main_board.slide(slide_direction)
-                elif event.key in (K_DOWN, K_s):
-                    slide_direction = Direction.Down
-                    main_board.slide(slide_direction)
+                if event.key in (K_LEFT, K_a): main_board.slide(Direction.Left)
+                elif event.key in (K_RIGHT, K_d): main_board.slide(Direction.Right)
+                elif event.key in (K_UP, K_w): main_board.slide(Direction.Up)
+                elif event.key in (K_DOWN, K_s): main_board.slide(Direction.Down)
+                elif event.key == K_ESCAPE: mainmenu()
 
+        # Mute/unmute draw_button
         if is_clicked(725, 20, 50, 50):
-            pygame.time.wait(50)
+            pygame.time.wait(100)
             if not muted: pygame.mixer.music.pause()
             else: pygame.mixer.music.unpause()
             muted = not muted
 
+        # Back draw_button (go to main menu)
         if is_clicked(20, 20, 50, 50):
-            pygame.time.wait(50)
+            pygame.time.wait(100)
             mainmenu()
 
         current_score = main_board.get_max_score()
@@ -312,8 +313,6 @@ def draw_blocks(board_in):
         WINDOW.blit(text_surface_obj, text_rect_obj)
 
 def block_position_to_pixel(x, y):
-    assert (0 <= x < BOARD_WIDTH) and (0 <= y < BOARD_HEIGHT), \
-        'function "block_position_to_pixel": invalid position ' + str((x, y)) + ', which must be in [0, board_size).'
     pixel_left = X_MARGIN + (BLOCK_SIZE + MARGIN_SIZE) * x
     pixel_top = Y_MARGIN + (BLOCK_SIZE + MARGIN_SIZE) * y
 
@@ -355,16 +354,16 @@ def handle_win_or_lost(result, title):
         pygame.display.update()
         FPS_CLOCK.tick(FPS)
 
-def display_text(text, place, font, color, size):
+def display_text(text, place, font, colorname, size):
     ''' Function to display text on any surface, provided the co-ordinates, font, size '''
-    color = eval('Color.%s.value' % color)
+    color = eval('Color.%s.value' % colorname)
     font = pygame.font.Font(font, size)
     text_ =  font.render(text, False, color)
     text_rect = text_.get_rect()
     text_rect.center = place
     WINDOW.blit(text_, text_rect)
 
-def button(text, colorname, x, y, w, h, tx, ty):
+def draw_button(text, colorname, x, y, w, h, tx, ty):
     ''' Function to create a button with text in it and set its colour to its light
         version when mouse is hovered on it. Also returns True when clicked on it. '''
     color = eval('Color.%s.value' % colorname)
@@ -372,11 +371,11 @@ def button(text, colorname, x, y, w, h, tx, ty):
     pygame.draw.rect(WINDOW, color, [x, y, w, h])
     display_text(text, (tx, ty), "res/fonts/PixelOperator8-Bold.ttf", "Black", 35)
 
-    # Get (x,y) position and clicked button of mouse
+    # Get (x,y) position and clicked draw_button of mouse
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
 
-    # Detect mouse hover by comparing coordinates of box and mouse point
+    # Change draw_button colour to light on mouseover
     if is_hovering(x, y, w, h):
         pygame.draw.rect(WINDOW, eval('Color.%s.value' % ("Light"+colorname)), [x, y, w, h])
         display_text(text, (tx, ty), "res/fonts/PixelOperator8-Bold.ttf", "Black", 35)
@@ -390,8 +389,7 @@ def is_clicked(x, y, w, h):
 
 def is_hovering(x, y, w, h):
     mouse = pygame.mouse.get_pos()
-    if mouse in [(x,y) for x,y in itertools.product(range(x,x+w+1), range(y,y+h+1))]:
-        print("yes")
-        return True
+    all_coords = [(x,y) for x,y in itertools.product(range(x,x+w), range(y,y+h))]
+    if mouse in all_coords: return True
 
 if __name__ == "__main__": game()
