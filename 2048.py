@@ -204,8 +204,8 @@ def mainmenu():
         WINDOW.blit(BG_OBJ, (0, 0))
         WINDOW.blit(LOGO_OBJ, (215, 75))
 
-        if not muted: WINDOW.blit(MUTE_OBJ, (725, 20))
-        else: WINDOW.blit(UNMUTE_OBJ, (725, 20))
+        if not muted: WINDOW.blit(MUTE_OBJ, (720, 15))
+        else: WINDOW.blit(UNMUTE_OBJ, (720, 15))
 
         if is_clicked(725, 20, 50, 50):
             pygame.time.wait(100)
@@ -213,9 +213,9 @@ def mainmenu():
             else: pygame.mixer.music.unpause()
             muted = not muted
 
-        play = draw_button('Play', "Green", 335, 200, 165, 60, 410, 230)
+        play = draw_button('Play', "Green", 335, 200, 165, 60, 415, 230)
         highscore = draw_button('High Scores', "Blue", 245, 305, 355, 60, 425, 335)
-        quit = draw_button('Quit', "Red", 335, 410, 165, 60, 410, 440)
+        quit = draw_button('Quit', "Red", 335, 410, 165, 60, 415, 440)
 
         if quit: break
         elif play: return
@@ -249,7 +249,7 @@ def game():
     BACK_OBJ = pygame.image.load("res/backbutton.png").convert_alpha()
 
     pygame.display.set_caption('2048 Game for MeAndTheBois™')
-    pygame.mixer.music.load('res/mainmenu_music.mp3')
+    pygame.mixer.music.load('res/music.mp3')
     pygame.mixer.music.play(-1)
     mainmenu()
 
@@ -257,8 +257,8 @@ def game():
     while True:
         WINDOW.blit(BG_OBJ, (0, 0))
         WINDOW.blit(BACK_OBJ, (20, 20))
-        if not muted: WINDOW.blit(MUTE_OBJ, (725, 20))
-        else: WINDOW.blit(UNMUTE_OBJ, (725, 20))
+        if not muted: WINDOW.blit(MUTE_OBJ, (720, 15))
+        else: WINDOW.blit(UNMUTE_OBJ, (720, 15))
         pygame.draw.rect(WINDOW, Color.DeepOrange.value, BLOCK_BOARD, BOARD_OUTER_LINE_WIDTH)
 
         for event in pygame.event.get():
