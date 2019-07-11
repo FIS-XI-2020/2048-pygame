@@ -12,6 +12,8 @@ BOARD_HEIGHT = 4
 BOARD_OUTER_LINE_WIDTH = 4
 BLOCK_SIZE = 100
 MARGIN_SIZE = 20
+TITLE_SIZE = 60
+SMALL_FONT_SIZE = 53
 FONT_SIZE = 64
 RESULT_SIZE = 35
 WINDOW_WIDTH = 800
@@ -37,8 +39,7 @@ class Result(Enum):
 class Color(Enum):
     White = (255, 255, 255)
     DeepOrange = (234, 120, 33)
-    white = (255, 255, 255)
-    Black = (0,0,0)
+    Black = (0, 0, 0)
     LightRed = (230, 0, 0)
     LightGreen = (0, 240, 0)
     LightBlue = (51, 153, 255)
@@ -48,26 +49,25 @@ class Color(Enum):
     Blue = (0, 102, 204)
     Fuschia = (255,0,255)
     Orange = (255,69,0)
-    Block0 = (204, 192, 179)
-    Block2 = (238, 228, 218)
-    Block4 = (237, 224, 200)
-    Block8 = (242, 177, 121)
-    Block16 = (244, 149, 99)
-    Block32 = (245, 121, 77)
-    Block64 = (245, 93, 55)
-    Block128 = (238, 232, 99)
-    Block256 = (237, 176, 77)
-    Block512 = (236, 176, 77)
-    Block1024 = (235, 148, 55)
-    Block2048 = (234, 120, 33)
+    WLscr = (37,216,67)
+    Block2 = (204,255,255)
+    Block4 = (153,255,255)
+    Block8 = (102,255,255)
+    Block16 = (0,255,255)
+    Block32 = (0,153,153)
+    Block64 = (51,153,255)
+    Block128 = (0,102,204)
+    Block256 = (0,76,153)
+    Block512 = (127,0,255)
+    Block1024 = (153,51,255)
+    Block2048 = (153,0,153)
     TextLight = (255, 244, 234)
     TextDark = (119, 110, 101)
 
-BACKGROUND_COLOR = Color.Block0.value
+BACKGROUND_COLOR = Color.WLscr.value
 TEXT_COLOR = Color.TextLight.value
 BOARD_TEXT_COLOR = Color.TextDark.value
 COLOR_SWITCHER = {
-    0: Color.Block0.value,
     2: Color.Block2.value,
     4: Color.Block4.value,
     8: Color.Block8.value,
@@ -303,6 +303,10 @@ def game():
 
 def draw_blocks(board_in):
     for block in board_in.blocks:
+        if block.score > 64:
+            BOARD_TEXT_COLOR = Color.TextLight.value
+            FONT_OBJ = pygame.font.Font('res/fonts/Slate.ttf', SMALL_FONT_SIZE)
+
         left, top = block_position_to_pixel(block.coordinate_x, block.coordinate_y)
         block_rect_obj = pygame.Rect(left, top, BLOCK_SIZE, BLOCK_SIZE)
         pygame.draw.rect(WINDOW, COLOR_SWITCHER[block.score], block_rect_obj)
