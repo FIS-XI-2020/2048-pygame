@@ -302,6 +302,7 @@ def game():
         FPS_CLOCK.tick(FPS)
 
 def draw_blocks(board_in):
+    global FPS_CLOCK, WINDOW, FONT_OBJ, TITLE_OBJ, BLOCK_BOARD,BOARD_TEXT_COLOR
     for block in board_in.blocks:
         if block.score > 64:
             BOARD_TEXT_COLOR = Color.TextLight.value
@@ -395,4 +396,4 @@ def is_hovering(x, y, w, h):
     all_coords = [(x,y) for x,y in itertools.product(range(x,x+w), range(y,y+h))]
     if mouse in all_coords: return True
 
-if __name__ == "__main__": game()
+game()
