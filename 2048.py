@@ -360,32 +360,26 @@ def handle_win_or_lost(result, title):
         pygame.display.update()
         FPS_CLOCK.tick(FPS)
 
-def display_text(text, place, font, colorname, size):
-    ''' Function to display text on any surface, provided the co-ordinates, font, size '''
-    color = eval('Color.%s.value' % colorname)
-    font = pygame.font.Font(font, size)
-    text_ =  font.render(text, False, color)
-    text_rect = text_.get_rect()
-    text_rect.center = place
-    WINDOW.blit(text_, text_rect)
-
 def draw_button(text, colorname, x, y, w, h, tx, ty):
     ''' Function to create a button with text in it and set its colour to its light
         version when mouse is hovered on it. Also returns True when clicked on it. '''
     color = eval('Color.%s.value' % colorname)
+    font = pygame.font.Font("res/fonts/PixelOperator8-Bold.ttf", 35)
+    text_ =  font.render(text, False, Color.Black.value)
+    text_rect = text_.get_rect()
+    text_rect.center = (tx, ty)
 
     pygame.draw.rect(WINDOW, color, [x, y, w, h])
-    display_text(text, (tx, ty), "res/fonts/PixelOperator8-Bold.ttf", "Black", 35)
 
     # Get (x,y) position and clicked draw_button of mouse
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
 
     # Change draw_button colour to light on mouseover
-    if is_hovering(x, y, w, h):
-        pygame.draw.rect(WINDOW, eval('Color.%s.value' % ("Light"+colorname)), [x, y, w, h])
-        display_text(text, (tx, ty), "res/fonts/PixelOperator8-Bold.ttf", "Black", 35)
+    if is_hovering(x, y, w, h): pygame.draw.rect(WINDOW, eval('Color.%s.value' % ("Light"+colorname)), [x, y, w, h])
     if is_clicked(x, y, w, h): return True
+
+    WINDOW.blit(text_, text_rect)
 
 def is_clicked(x, y, w, h):
     mouse = pygame.mouse.get_pos()
