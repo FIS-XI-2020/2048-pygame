@@ -51,7 +51,8 @@ class Color(Enum):
     Blue = (0, 102, 204)
     Fuschia = (255,0,255)
     Orange = (255,69,0)
-    WinLoseScr = (37,216,67)
+    WinScr = (0, 255, 0)
+    LoseScr = (255, 0, 0)
     Block2 = (204,255,255)
     Block4 = (153,255,255)
     Block8 = (102,255,255)
@@ -66,7 +67,6 @@ class Color(Enum):
     TextLight = (255, 244, 234)
     TextDark = (0, 0, 0)
 
-BACKGROUND_COLOR = Color.WinLoseScr.value
 TEXT_COLOR = Color.TextLight.value
 BOARD_TEXT_COLOR = Color.TextDark.value
 COLOR_SWITCHER = {
@@ -293,7 +293,7 @@ def game():
 
         if len(main_board.blocks) >= (BOARD_WIDTH * BOARD_HEIGHT):
             pygame.time.wait(1000)
-            title = 'You Lose! Better luck next time!\n\nHit "Esc" to exit\nor any other key to restart.'
+            title = 'You Lose :-(\nBetter luck next time!\n\nHit "Esc" to exit\nor any other key to restart.'
             handle_win_or_lost(Result.Lost, title)
             main_board = Board()
         elif current_score < 2048:
@@ -301,7 +301,7 @@ def game():
             draw_title(title)
         else:
             pygame.time.wait(1000)
-            title = 'Congratulations! You Win!\n\nHit "Esc" to exit\nor any other key to restart.'
+            title = 'Congratulations! You Win :-)\n\nHit "Esc" to exit\nor any other key to restart.'
             handle_win_or_lost(Result.Win, title)
             main_board = Board()
 
@@ -336,6 +336,9 @@ def draw_title(title):
 
 def handle_win_or_lost(result, title):
     ''' Win/lose screen '''
+    if result == Result.Win: BACKGROUND_COLOR = Color.WinScr.value
+    else: BACKGROUND_COLOR = Color.LoseScr.value
+    
     WINDOW.fill(BACKGROUND_COLOR)
     text_y = Y_MARGIN + int(TITLE_SIZE / 2)
     result_font = pygame.font.Font('res/fonts/Slate.ttf', RESULT_SIZE)
