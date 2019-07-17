@@ -12,11 +12,11 @@ BOARD_HEIGHT = 4
 BOARD_OUTER_LINE_WIDTH = 4
 BLOCK_SIZE = 100
 MARGIN_SIZE = 20
-TITLE_SIZE = 53
+TITLE_SIZE = 52
 BUTTON_FONT_SIZE = 35
 SMALL_FONT_SIZE = 48
 FONT_SIZE = 64
-RESULT_SIZE = 35
+RESULT_SIZE = 32
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
 MAX_SCORE = 2048
@@ -30,7 +30,7 @@ assert (BOARD_WIDTH * (BLOCK_SIZE + MARGIN_SIZE) < WINDOW_WIDTH) and \
 
 X_MARGIN = int((WINDOW_WIDTH - (BOARD_WIDTH * (BLOCK_SIZE + MARGIN_SIZE))) / 2)
 Y_MARGIN = int((WINDOW_HEIGHT - (BOARD_HEIGHT * (BLOCK_SIZE + MARGIN_SIZE))) / 2 + TITLE_SIZE / 2)
-TITLE_CENTER = (int(WINDOW_WIDTH / 2), int(Y_MARGIN / 2))
+TITLE_CENTER = (WINDOW_WIDTH // 2, Y_MARGIN // 2)
 
 # Set result types
 class Result(Enum):
@@ -49,23 +49,23 @@ class Color(Enum):
     Green = (0, 180, 0)
     Red = (190, 0, 0)
     Blue = (0, 102, 204)
-    Fuschia = (255,0,255)
-    Orange = (255,69,0)
-    WinScr = (0, 255, 0)
-    LoseScr = (255, 80, 80)
-    Block2 = (204,255,255)
-    Block4 = (153,255,255)
-    Block8 = (102,255,255)
-    Block16 = (0,255,255)
-    Block32 = (0,153,153)
-    Block64 = (51,153,255)
-    Block128 = (0,102,204)
-    Block256 = (0,76,153)
-    Block512 = (127,0,255)
-    Block1024 = (153,51,255)
-    Block2048 = (153,0,153)
+    Fuschia = (255, 0, 255)
+    Orange = (255, 69, 0)
+    WinScr = (0, 220, 0)
+    LoseScr = (255, 153, 51)
+    Block2 = (204, 255, 255)
+    Block4 = (153, 255, 255)
+    Block8 = (102, 255, 255)
+    Block16 = (0, 255, 255)
+    Block32 = (0, 153, 153)
+    Block64 = (51, 153, 255)
+    Block128 = (0, 102, 204)
+    Block256 = (0, 76, 153)
+    Block512 = (127, 0, 255)
+    Block1024 = (153, 51, 255)
+    Block2048 = (153, 0, 153)
     TextLight = (255, 244, 234)
-    TextDark = (32, 32, 32)
+    TextDark = (30, 30, 30)
 
 TEXT_COLOR = Color.TextLight.value
 WL_TEXT_COLOR = Color.TextDark.value
@@ -187,6 +187,10 @@ class Board:
     get_max_score = lambda self: max([block.score for block in self.blocks])
     get_block_num = lambda self: len(self.blocks)
 
+def quit():
+    pygame.quit()
+    sys.exit()
+
 def mainmenu():
     ''' Main Menu of the game '''
     global muted
@@ -199,9 +203,7 @@ def mainmenu():
 
     while True:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+            if event.type == pygame.QUIT: quit()
         WINDOW.blit(BG_OBJ, (0, 0))
         WINDOW.blit(LOGO_OBJ, LOGO_RECT)
 
@@ -210,23 +212,16 @@ def mainmenu():
         else: WINDOW.blit(UNMUTE_OBJ, (720, 15))
 
         if mouse_status(725, 20, 50, 50)[1]:
-            pygame.time.wait(100)
             if not muted: pygame.mixer.music.pause()
             else: pygame.mixer.music.unpause()
             muted = not muted
 
-        play = draw_button('Play', "Green", BUTTON_FONT_SIZE, 200)
+        if draw_button('Play', "Green", BUTTON_FONT_SIZE, 200): return
+        elif draw_button('Quit', "Red", BUTTON_FONT_SIZE, 410): quit()
         highscore = draw_button('High Scores', "Blue", BUTTON_FONT_SIZE, 305)
-        quit = draw_button('Quit', "Red", BUTTON_FONT_SIZE, 410)
-
-        if quit: break
-        elif play: return
 
         pygame.display.update()
         FPS_CLOCK.tick(FPS)
-
-    pygame.quit()
-    sys.exit()
 
 def game():
     ''' The main game function '''
@@ -263,9 +258,7 @@ def game():
         pygame.draw.rect(WINDOW, Color.DeepOrange.value, BLOCK_BOARD, BOARD_OUTER_LINE_WIDTH)
 
         for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+            if event.type == QUIT: quit()
             elif event.type == KEYUP:
                 if event.key in (K_LEFT, K_a): main_board.slide(Direction.Left)
                 elif event.key in (K_RIGHT, K_d): main_board.slide(Direction.Right)
@@ -278,31 +271,26 @@ def game():
         else: WINDOW.blit(UNMUTE_OBJ, (720, 15))
 
         if mouse_status(725, 20, 50, 50)[1]:
-            pygame.time.wait(100)
             if not muted: pygame.mixer.music.pause()
             else: pygame.mixer.music.unpause()
             muted = not muted
 
         # Back button (go to main menu)
-        if mouse_status(20, 20, 50, 50)[1]:
-            pygame.time.wait(100)
-            mainmenu()
+        if mouse_status(20, 20, 50, 50)[1]: mainmenu()
 
         current_score = main_board.get_max_score()
         draw_blocks(main_board)
 
         if len(main_board.blocks) >= (BOARD_WIDTH * BOARD_HEIGHT):
             pygame.time.wait(1000)
-            title = 'You Lose :-(\nBetter luck next time!\n\nHit "Esc" to exit\nor any other key to restart.'
-            handle_win_or_lost(Result.Lost, title)
+            handle_win_or_lost(Result.Lost)
             main_board = Board()
         elif current_score < 2048:
             title = title_text + str(current_score)
             draw_title(title)
         else:
             pygame.time.wait(1000)
-            title = 'Congratulations! You Win :-)\n\nHit "Esc" to exit\nor any other key to restart.'
-            handle_win_or_lost(Result.Win, title)
+            handle_win_or_lost(Result.Win)
             main_board = Board()
 
         pygame.display.update()
@@ -323,61 +311,51 @@ def draw_blocks(board_in):
         block_rect_obj = pygame.Rect(left, top, BLOCK_SIZE, BLOCK_SIZE)
         pygame.draw.rect(WINDOW, COLOR_SWITCHER[block.score], block_rect_obj)
         text_surface_obj = FONT_OBJ.render(str(block.score), True, BOARD_TEXT_COLOR)
-        text_rect_obj = text_surface_obj.get_rect()
-        text_rect_obj.center = block_rect_obj.center
+        text_rect_obj = text_surface_obj.get_rect(center = block_rect_obj.center)
         WINDOW.blit(text_surface_obj, text_rect_obj)
 
-def draw_title(title):
+def draw_title(title, y = False, color = TEXT_COLOR):
     ''' Render a title text according to TITLE_OBJ '''
-    text_surface_obj = TITLE_OBJ.render(title, True, TEXT_COLOR)
-    text_rect_obj = text_surface_obj.get_rect()
-    text_rect_obj.center = TITLE_CENTER
+    text_surface_obj = TITLE_OBJ.render(title, True, color)
+    if y: text_rect_obj = text_surface_obj.get_rect(top = y, centerx = WINDOW_WIDTH // 2)
+    else: text_rect_obj = text_surface_obj.get_rect(center = TITLE_CENTER)
     WINDOW.blit(text_surface_obj, text_rect_obj)
 
-def handle_win_or_lost(result, title):
+def handle_win_or_lost(result):
     ''' Win/lose screen '''
-    global Y_MARGIN
-
     if result == Result.Win:
         BACKGROUND_COLOR = Color.WinScr.value
         smiley_img = pygame.image.load("res/happy_smiley.png")
+        title = 'You Win. Congratulations!\n\nHit "Esc" key to exit,\nor any other key to restart.'
     else:
         BACKGROUND_COLOR = Color.LoseScr.value
         smiley_img = pygame.image.load("res/sad_smiley.png")
+        title = 'You Lose. Better luck next time!\n\nHit "Esc" key to exit,\nor any other key to restart.'
 
-    smiley_obj = smiley_img.get_rect()
-    smiley_obj.top = Y_MARGIN - 55
-    smiley_obj.centerx =  WINDOW_WIDTH // 2
+    text_y = Y_MARGIN + int(TITLE_SIZE / 2) + 130
+    result_font = pygame.font.Font('res/fonts/Slate.ttf', RESULT_SIZE)
+    smiley_obj = smiley_img.get_rect(top = Y_MARGIN - 55, centerx =  WINDOW_WIDTH // 2)
 
     WINDOW.fill(BACKGROUND_COLOR)
     WINDOW.blit(smiley_img, smiley_obj)
-    text_y = Y_MARGIN + int(TITLE_SIZE / 2) + 130
-    result_font = pygame.font.Font('res/fonts/Slate.ttf', RESULT_SIZE)
 
-    tokens = title.split('\n')
-    text_surface_obj = TITLE_OBJ.render(tokens[0], True, WL_TEXT_COLOR, BACKGROUND_COLOR)
-    text_rect_obj = text_surface_obj.get_rect()
-    text_rect_obj.top = text_y
-    text_rect_obj.centerx = WINDOW_WIDTH // 2
-    WINDOW.blit(text_surface_obj, text_rect_obj)
-    text_y += RESULT_SIZE
+    lines = title.split('\n')
+    draw_title(lines[0], text_y, WL_TEXT_COLOR)
+    text_y += 30
 
-    for text in tokens[1:]:
-        text_y += int(RESULT_SIZE * 1.3)
+    for text in lines[1:]:
+        text_y += int(RESULT_SIZE * 1.2)
         text_surface_obj = result_font.render(text, True, WL_TEXT_COLOR, BACKGROUND_COLOR)
-        text_rect_obj = text_surface_obj.get_rect()
-        text_rect_obj.top = text_y
-        text_rect_obj.centerx = int(WINDOW_WIDTH / 2)
+        text_rect_obj = text_surface_obj.get_rect(top = text_y, centerx = WINDOW_WIDTH // 2)
         WINDOW.blit(text_surface_obj, text_rect_obj)
 
     pygame.display.update()
     pygame.time.wait(1000)
+    pygame.event.clear()
 
     while True:
-        for event in pygame.event.get():  # event handling loop
-            if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
-                pygame.quit()
-                sys.exit()
+        for event in pygame.event.get():
+            if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE): quit()
             elif event.type == KEYUP: return
         pygame.display.update()
         FPS_CLOCK.tick(FPS)
@@ -397,7 +375,6 @@ def draw_button(text, colorname, fontsize, button_y):
     button_h = text_h + 20
 
     text_rect = text_.get_rect(top = button_y+10, centerx = (WINDOW_WIDTH // 2))
-
     pygame.draw.rect(WINDOW, color, [button_x, button_y, button_w, button_h])
 
     # Change draw_button colour to light on mouseover
@@ -415,7 +392,9 @@ def mouse_status(x, y, w, h):
     for i, j in itertools.product(range(x, x+w), range(y, y+h)):
         if i == mouse[0] and j == mouse[1]:
             if not click[0]: return True, False
-            else: return True, True
+            else:
+                pygame.time.wait(100)
+                return True, True
 
     return False, False
 
