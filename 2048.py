@@ -193,13 +193,10 @@ def quit():
 
 def mainmenu():
     ''' Main Menu of the game '''
-    global muted
+    global BG_OBJ, MUTE_OBJ, UNMUTE_OBJ, BACK_OBJ, muted
 
-    BG_OBJ = pygame.image.load("res/background.jpg")
     LOGO_OBJ = pygame.image.load("res/logo.png").convert_alpha()
     LOGO_RECT = LOGO_OBJ.get_rect(centerx = (WINDOW_WIDTH // 2), top = 75)
-    MUTE_OBJ = pygame.image.load("res/unmute.png").convert_alpha()
-    UNMUTE_OBJ = pygame.image.load("res/mute.png").convert_alpha()
 
     while True:
         for event in pygame.event.get():
@@ -210,7 +207,6 @@ def mainmenu():
         # Mute/unmute button
         if not muted: WINDOW.blit(MUTE_OBJ, (720, 15))
         else: WINDOW.blit(UNMUTE_OBJ, (720, 15))
-
         if mouse_status(725, 20, 50, 50)[1]:
             if not muted: pygame.mixer.music.pause()
             else: pygame.mixer.music.unpause()
@@ -225,7 +221,7 @@ def mainmenu():
 
 def game():
     ''' The main game function '''
-    global FPS_CLOCK, WINDOW, FONT_OBJ, TITLE_OBJ, BLOCK_BOARD, muted
+    global FPS_CLOCK, WINDOW, FONT_OBJ, TITLE_OBJ, BLOCK_BOARD, BG_OBJ, MUTE_OBJ, UNMUTE_OBJ, BACK_OBJ, muted
 
     pygame.init()
     FPS_CLOCK = pygame.time.Clock()
@@ -253,6 +249,11 @@ def game():
 
     # Main game loop
     while True:
+        """
+        DEBUG
+        handle_win_or_lost(Result.Win)
+        handle_win_or_lost(Result.Lost)
+        """
         WINDOW.blit(BG_OBJ, (0, 0))
         WINDOW.blit(BACK_OBJ, (20, 20))
         pygame.draw.rect(WINDOW, Color.DeepOrange.value, BLOCK_BOARD, BOARD_OUTER_LINE_WIDTH)
@@ -269,7 +270,6 @@ def game():
         # Mute/unmute button
         if not muted: WINDOW.blit(MUTE_OBJ, (720, 15))
         else: WINDOW.blit(UNMUTE_OBJ, (720, 15))
-
         if mouse_status(725, 20, 50, 50)[1]:
             if not muted: pygame.mixer.music.pause()
             else: pygame.mixer.music.unpause()
@@ -326,11 +326,11 @@ def handle_win_or_lost(result):
     if result == Result.Win:
         BACKGROUND_COLOR = Color.WinScr.value
         smiley_img = pygame.image.load("res/happy_smiley.png")
-        title = 'You Win. Congratulations!\n\nHit "Esc" key to exit,\nor any other key to restart.'
+        title = 'You Win. Congratulations!\n\nHit "Esc" key to go back to main menu,\nor any other key to restart.'
     else:
         BACKGROUND_COLOR = Color.LoseScr.value
         smiley_img = pygame.image.load("res/sad_smiley.png")
-        title = 'You Lose. Better luck next time!\n\nHit "Esc" key to exit,\nor any other key to restart.'
+        title = 'You Lose. Better luck next time!\n\nHit "Esc" key to go back to main menu,\nor any other key to restart.'
 
     text_y = Y_MARGIN + int(TITLE_SIZE / 2) + 130
     result_font = pygame.font.Font('res/fonts/Slate.ttf', RESULT_SIZE)
@@ -355,7 +355,7 @@ def handle_win_or_lost(result):
 
     while True:
         for event in pygame.event.get():
-            if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE): quit()
+            if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE): mainmenu()
             elif event.type == KEYUP: return
         pygame.display.update()
         FPS_CLOCK.tick(FPS)
