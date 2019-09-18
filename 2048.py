@@ -12,14 +12,13 @@ BOARD_HEIGHT = 4
 BOARD_OUTER_LINE_WIDTH = 4
 BLOCK_SIZE = 100
 MARGIN_SIZE = 20
-<<<<<<< HEAD
+
 TITLE_SIZE = 60
 SMALL_FONT_SIZE = 53
-=======
-TITLE_SIZE = 52
+
+
 BUTTON_FONT_SIZE = 35
-SMALL_FONT_SIZE = 48
->>>>>>> ec20c1c5eedf8069137fe2644e8c42549c2beb6c
+
 FONT_SIZE = 64
 RESULT_SIZE = 32
 WINDOW_WIDTH = 800
@@ -54,22 +53,7 @@ class Color(Enum):
     Green = (0, 180, 0)
     Red = (190, 0, 0)
     Blue = (0, 102, 204)
-<<<<<<< HEAD
-    Fuschia = (255,0,255)
-    Orange = (255,69,0)
-    WLscr = (37,216,67)
-    Block2 = (204,255,255)
-    Block4 = (153,255,255)
-    Block8 = (102,255,255)
-    Block16 = (0,255,255)
-    Block32 = (0,153,153)
-    Block64 = (51,153,255)
-    Block128 = (0,102,204)
-    Block256 = (0,76,153)
-    Block512 = (127,0,255)
-    Block1024 = (153,51,255)
-    Block2048 = (153,0,153)
-=======
+
     Fuschia = (255, 0, 255)
     Orange = (255, 69, 0)
     WinScr = (0, 220, 0)
@@ -85,14 +69,14 @@ class Color(Enum):
     Block512 = (127, 0, 255)
     Block1024 = (153, 51, 255)
     Block2048 = (153, 0, 153)
->>>>>>> ec20c1c5eedf8069137fe2644e8c42549c2beb6c
+
     TextLight = (255, 244, 234)
     TextDark = (30, 30, 30)
 
-<<<<<<< HEAD
-BACKGROUND_COLOR = Color.WLscr.value
-=======
->>>>>>> ec20c1c5eedf8069137fe2644e8c42549c2beb6c
+
+BACKGROUND_COLOR = Color.WinScr.value
+
+
 TEXT_COLOR = Color.TextLight.value
 WL_TEXT_COLOR = Color.TextDark.value
 BOARD_TEXT_COLOR = Color.TextDark.value
@@ -323,26 +307,26 @@ def game():
         FPS_CLOCK.tick(FPS)
 
 def draw_blocks(board_in):
-<<<<<<< HEAD
+
     global FPS_CLOCK, WINDOW, FONT_OBJ, TITLE_OBJ, BLOCK_BOARD,BOARD_TEXT_COLOR
-=======
+
     ''' Render all blocks on the screen '''
->>>>>>> ec20c1c5eedf8069137fe2644e8c42549c2beb6c
+
     for block in board_in.blocks:
         if block.score > 64:
             BOARD_TEXT_COLOR = Color.TextLight.value
             FONT_OBJ = pygame.font.Font('res/fonts/Slate.ttf', SMALL_FONT_SIZE)
-<<<<<<< HEAD
 
-        left, top = block_position_to_pixel(block.coordinate_x, block.coordinate_y)
-=======
+
+            left, top = block_position_to_pixel(block.coordinate_x, block.coordinate_y)
+
         else:
             BOARD_TEXT_COLOR = Color.TextDark.value
             FONT_OBJ = pygame.font.Font('res/fonts/Slate.ttf', FONT_SIZE)
 
         left = X_MARGIN + (BLOCK_SIZE + MARGIN_SIZE) * block.coordinate_x
         top = Y_MARGIN + (BLOCK_SIZE + MARGIN_SIZE) * block.coordinate_y
->>>>>>> ec20c1c5eedf8069137fe2644e8c42549c2beb6c
+
         block_rect_obj = pygame.Rect(left, top, BLOCK_SIZE, BLOCK_SIZE)
         pygame.draw.rect(WINDOW, COLOR_SWITCHER[block.score], block_rect_obj)
         text_surface_obj = FONT_OBJ.render(str(block.score), True, BOARD_TEXT_COLOR)
