@@ -20,11 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-<<<<<<< HEAD
-SECRET_KEY = '1dss58w2w(ehllqgae_0b_89%*856x0l57#k*fdba4d1u9$*)e'
-=======
 SECRET_KEY = '+^lc3^#^muwn^wb5q*5d#x)ghh$osm(sxh2+s0(qcm75op6w(n'
->>>>>>> ec20c1c5eedf8069137fe2644e8c42549c2beb6c
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -41,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'mainwebsite'
 ]
 
 MIDDLEWARE = [
@@ -58,11 +55,7 @@ ROOT_URLCONF = 'website.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-<<<<<<< HEAD
-        'DIRS': [],
-=======
         'DIRS': ['templates'],
->>>>>>> ec20c1c5eedf8069137fe2644e8c42549c2beb6c
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -84,7 +77,7 @@ WSGI_APPLICATION = 'website.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(BASE_DIR, 'game_data.sqlite3'),
     }
 }
 
