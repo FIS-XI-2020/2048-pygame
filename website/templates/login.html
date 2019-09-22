@@ -1,16 +1,16 @@
 <html>
 <title>LOGIN | 2048</title>
-<body background="https://cdna.artstation.com/p/assets/images/images/012/456/912/large/justin-maller-pacrim-wp2.jpg?1534889539">
+{% load static %}
 
-  <p><img src="https://i.imgur.com/6O17CWO.png" alt="logo"></p>
+<body background="{% static "background.jpg" %}" >
+
+  <p><img src="{% static "logo.png" %}" alt="logo"></p>
   <h2><u><font color="red">LOGIN OR SIGNUP BEFORE YOU PLAY!</font></u></h2>
-
-  <!--img src="https://i.kym-cdn.com/entries/icons/original/000/021/807/4d7.png" alt="HACKERMAN" width="200" height="200"-->
 
   <p><form action="#" method="post"><font color=#00FF00>{% csrf_token %}
     Username: <input type="text" name="username"><br>
     Password: <input type="password" name="password"><br><br>
-    <input type="submit" name="Login!"></font>
+    <input type="submit" value="Login!"></font>
   </form></p>
 
   <br><b><font color="red">Haven't signed up yet? Register now!</font></b>
@@ -18,7 +18,7 @@
     Username: <input type="text" name="reg_username"><br>
     Password: <input type="password" name="reg_pass"><br>
     Confirm Password: <input type="password" name="confirm_pass"><br><br>
-    <input type="submit" name="Register!"></font>
+    <input type="submit" value="Register!"></font>
   </form></p>
 
   <p><input type="button" onclick="location.href='/';" value="Go to homepage"/></p>

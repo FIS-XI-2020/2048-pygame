@@ -1,13 +1,15 @@
 <html>
 <title>{{ title }}</title>
-<body background="https://cdna.artstation.com/p/assets/images/images/012/456/912/large/justin-maller-pacrim-wp2.jpg">
+{% load static %}
 
-	<h2><font color=#1aff1a>{[ msg }}</font><h2>
+<body background="{% static "background.jpg" %}">
+
+	<h2><font color=#1aff1a>{{ msg }}</font><h2>
 
 	<p>
 		<input type="button" value="Go back" onClick="javascript:history.go(-1);">
 	</p>
-	<img src="https://i.imgflip.com/2uu9g1.jpg" alt="HACKERMAN" width="200" height="200">
+	<img src="{% static "result-meme.jpg" %}" alt="HACKERMAN" width="200" height="200">
 	<p>
 		<h3><font color="yellow">Developed by the 2048 team.</font></h3>
 		<font color=#FF1A1A>Copyright © 2019. All rights reserved.</font>
