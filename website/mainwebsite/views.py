@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from mainwebsite.models import leaderboard
 
 # Create your views here.
 
@@ -51,3 +52,7 @@ def loginpage(request):
             else: return render(request, 'result.html', {'msg':'Incorrect credentials!', 'title':'ERROR!'})
 
     return render(request, 'login.html')
+
+def leaderboardpage(request):
+    entries = leaderboard.objects.all()
+    return render(request, 'leaderboard.html', {'leaderboard':entries})

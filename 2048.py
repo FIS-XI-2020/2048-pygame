@@ -3,7 +3,7 @@
     [CBSE CS project 2019-20]
 """
 
-import pygame, sys, random, itertools
+import pygame, sys, random, itertools, webbrowser
 from pygame.locals import *
 from enum import Enum
 
@@ -12,13 +12,9 @@ BOARD_HEIGHT = 4
 BOARD_OUTER_LINE_WIDTH = 4
 BLOCK_SIZE = 100
 MARGIN_SIZE = 20
-
-TITLE_SIZE = 60
-SMALL_FONT_SIZE = 53
-
-
+TITLE_SIZE = 52
 BUTTON_FONT_SIZE = 35
-
+SMALL_FONT_SIZE = 48
 FONT_SIZE = 64
 RESULT_SIZE = 32
 WINDOW_WIDTH = 800
@@ -53,7 +49,6 @@ class Color(Enum):
     Green = (0, 180, 0)
     Red = (190, 0, 0)
     Blue = (0, 102, 204)
-
     Fuschia = (255, 0, 255)
     Orange = (255, 69, 0)
     WinScr = (0, 220, 0)
@@ -69,13 +64,8 @@ class Color(Enum):
     Block512 = (127, 0, 255)
     Block1024 = (153, 51, 255)
     Block2048 = (153, 0, 153)
-
     TextLight = (255, 244, 234)
     TextDark = (30, 30, 30)
-
-
-BACKGROUND_COLOR = Color.WinScr.value
-
 
 TEXT_COLOR = Color.TextLight.value
 WL_TEXT_COLOR = Color.TextDark.value
@@ -224,10 +214,14 @@ def mainmenu():
 
         if draw_button('Play', "Green", BUTTON_FONT_SIZE, 200): return
         elif draw_button('Quit', "Red", BUTTON_FONT_SIZE, 410): quit()
-        highscore = draw_button('High Scores', "Blue", BUTTON_FONT_SIZE, 305)
+        elif draw_button('Leaderboard', "Blue", BUTTON_FONT_SIZE, 305):
+            webbrowser.open("http://localhost:8000/leaderboard", new = 0)
 
         pygame.display.update()
         FPS_CLOCK.tick(FPS)
+
+#def waitForLogin():
+#    while not os.path.isfile("")
 
 def game():
     ''' The main game function '''
@@ -307,26 +301,17 @@ def game():
         FPS_CLOCK.tick(FPS)
 
 def draw_blocks(board_in):
-
-    global FPS_CLOCK, WINDOW, FONT_OBJ, TITLE_OBJ, BLOCK_BOARD,BOARD_TEXT_COLOR
-
     ''' Render all blocks on the screen '''
-
     for block in board_in.blocks:
         if block.score > 64:
             BOARD_TEXT_COLOR = Color.TextLight.value
             FONT_OBJ = pygame.font.Font('res/fonts/Slate.ttf', SMALL_FONT_SIZE)
-
-
-            left, top = block_position_to_pixel(block.coordinate_x, block.coordinate_y)
-
         else:
             BOARD_TEXT_COLOR = Color.TextDark.value
             FONT_OBJ = pygame.font.Font('res/fonts/Slate.ttf', FONT_SIZE)
 
         left = X_MARGIN + (BLOCK_SIZE + MARGIN_SIZE) * block.coordinate_x
         top = Y_MARGIN + (BLOCK_SIZE + MARGIN_SIZE) * block.coordinate_y
-
         block_rect_obj = pygame.Rect(left, top, BLOCK_SIZE, BLOCK_SIZE)
         pygame.draw.rect(WINDOW, COLOR_SWITCHER[block.score], block_rect_obj)
         text_surface_obj = FONT_OBJ.render(str(block.score), True, BOARD_TEXT_COLOR)
@@ -417,4 +402,4 @@ def mouse_status(x, y, w, h):
 
     return False, False
 
-game()
+if __name__ == "__main__": game()

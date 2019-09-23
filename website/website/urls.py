@@ -20,6 +20,6 @@ from mainwebsite import views
 urlpatterns = [
     path('login', views.loginpage, name='login'),
     path('logout', views.logoutpage, name='logout'),
-    #path('leaderboard', views.leaderboard, name='leaderboard'),
+    path('leaderboard', views.leaderboardpage, name='leaderboard'),
     #path('adminpage', views.adminPage, name='adminpage'),
 ]
