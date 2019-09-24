@@ -3,7 +3,8 @@
     [CBSE CS project 2019-20]
 """
 
-import pygame, sys, random, itertools, webbrowser
+import pygame, sys, random, itertools, time, os
+from selenium import webdriver
 from pygame.locals import *
 from enum import Enum
 
@@ -189,11 +190,17 @@ class Board:
 
 def quit():
     pygame.quit()
+    if os.path.isfile("website/authinfo.txt"):
+        os.remove("website/authinfo.txt")
+    browser = webdriver.Firefox(executable_path = 'res/geckodriver')
+    browser.get('http://localhost:8000/logout')
+    time.sleep(2)
+    browser.close()
     sys.exit()
 
 def mainmenu():
     ''' Main Menu of the game '''
-    global BG_OBJ, MUTE_OBJ, UNMUTE_OBJ, BACK_OBJ, muted
+    global BG_OBJ, MUTE_OBJ, UNMUTE_OBJ, BACK_OBJ, muted, browser
 
     LOGO_OBJ = pygame.image.load("res/logo.png").convert_alpha()
     LOGO_RECT = LOGO_OBJ.get_rect(centerx = (WINDOW_WIDTH // 2), top = 75)
@@ -212,16 +219,30 @@ def mainmenu():
             else: pygame.mixer.music.unpause()
             muted = not muted
 
-        if draw_button('Play', "Green", BUTTON_FONT_SIZE, 200): return
+        if draw_button('Play', "Green", BUTTON_FONT_SIZE, 200):
+            browser = webdriver.Firefox(executable_path = 'res/geckodriver')
+            browser.get('http://localhost:8000/login')
+            waitForLogin()
+            time.sleep(1)
+            browser.close()
+            return
         elif draw_button('Quit', "Red", BUTTON_FONT_SIZE, 410): quit()
         elif draw_button('Leaderboard', "Blue", BUTTON_FONT_SIZE, 305):
-            webbrowser.open("http://localhost:8000/leaderboard", new = 0)
+            browser = webdriver.Firefox(executable_path = 'res/geckodriver')
+            browser.get('http://localhost:8000/leaderboard')
 
         pygame.display.update()
         FPS_CLOCK.tick(FPS)
 
-#def waitForLogin():
-#    while not os.path.isfile("")
+def waitForLogin():
+    ''' Wait until the user logs in, in the django webpage '''
+    global username
+    while not os.path.isfile("website/authinfo.txt"):
+        print("User has not logged in yet! Waiting for 2 secs...") # DEBUG
+        time.sleep(2)
+    with open("website/authinfo.txt", "r") as authinfo:
+        username = ((authinfo.readlines())[0].split())[0]
+        print("\nLogged in as user:", username)
 
 def game():
     ''' The main game function '''
@@ -402,4 +423,7 @@ def mouse_status(x, y, w, h):
 
     return False, False
 
-if __name__ == "__main__": game()
+if __name__ == "__main__":
+    try: game()
+    except KeyboardInterrupt: pass
+    quit()

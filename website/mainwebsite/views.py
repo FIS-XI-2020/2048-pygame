@@ -47,12 +47,13 @@ def loginpage(request):
                 return render(request, 'result.html', {'msg':'User created succesfully!', 'title':'SUCCESS!'})
 
         else:
-            result = log_in(request)
-            if result: return render(request, 'result.html', {'msg':'Logged in succesfully!', 'title':'SUCCESS!'})
+            if log_in(request):
+                with open("authinfo.txt", "w+") as authinfo:
+                    authinfo.write(request.POST['username'])
+                return render(request, 'result.html', {'msg':'Logged in succesfully! Redirecting to game ...', 'title':'SUCCESS!'})
             else: return render(request, 'result.html', {'msg':'Incorrect credentials!', 'title':'ERROR!'})
 
     return render(request, 'login.html')
 
 def leaderboardpage(request):
-    entries = leaderboard.objects.all()
-    return render(request, 'leaderboard.html', {'leaderboard':entries})
+    return render(request, 'leaderboard.html', {'leaderboard':leaderboard.objects.all()})
