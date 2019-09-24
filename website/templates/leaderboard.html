@@ -7,25 +7,20 @@
   <p><img src="{% static "logo.png" %}" alt="logo"></p>
   <h2><u><font color="red">LEADERBOARD</font></u></h2>
 
-  <p><table border="1" cellpadding="3" style="color:#1aff1a;">
+  <p><table border="1" cellpadding="4" style="color:#1aff1a;">
   	<tr>
   		<th>Ranking</th>
   		<th>Username</th>
   		<th>No. of Games Played</th>
-  		<th>Total Points</th>
   		<th>Highest Score</th>
-  		<th>Avg Score</th>
-  		<th>Average Score</th>
   		<th>Level</th>
   	</tr>
-  	{% for entry in leaderboard %}
+  	{% for entry, rank in leaderboard %}
   	<tr>
-  		<td>{{ entry.rank }}</td>
+  		<td>{{ rank }}</td>
   		<td>{{ entry.username }}</td>
   		<td>{{ entry.total_played }}</td>
-      <td>{{ entry.total_points }}</td>
       <td>{{ entry.top_score }}</td>
-      <td>{{ entry.avg_score }}</td>
       <td>{{ entry.player_level }}</td>
   	</tr>
   	{% endfor %}

@@ -44,7 +44,7 @@ def loginpage(request):
             elif result == 2:
                 return render(request, 'result.html', {'msg':'Username already exists! Try another one or login', 'title':'ERROR!'})
             else:
-                return render(request, 'result.html', {'msg':'User created succesfully!', 'title':'SUCCESS!'})
+                return render(request, 'result.html', {'msg':'User created succesfully! Go back and login', 'title':'SUCCESS!'})
         else:
             if log_in(request):
                 with open("authinfo.txt", "w+") as authinfo:
@@ -55,6 +55,6 @@ def loginpage(request):
     return render(request, 'login.html')
 
 def leaderboardpage(request):
-    entries = leaderboard.objects.order_by('top_score', 'total_played').all()
+    entries = leaderboard.objects.order_by('-top_score', '-total_played').all()
     entries_iterable = zip(entries, range(1, len(entries) + 1))
     return render(request, 'leaderboard.html', {'leaderboard':entries_iterable})

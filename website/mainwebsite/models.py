@@ -5,4 +5,4 @@ class leaderboard(models.Model):
     username = models.CharField(max_length = 32)
     total_played = models.IntegerField()
     top_score = models.IntegerField()
-    player_level = models.CharField(default = "Amateur", max_length = 10)
+    player_level = models.CharField(max_length = 8)
