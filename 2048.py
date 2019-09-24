@@ -3,10 +3,27 @@
     [CBSE CS project 2019-20]
 """
 
-import pygame, sys, random, itertools, time, os
+import pygame, sys, random, itertools, time, os, django
 from selenium import webdriver
 from pygame.locals import *
 from enum import Enum
+from django.conf import settings
+from website.website.settings import DATABASES
+
+# configure django
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'website.mainwebsite'
+]
+settings.configure(DATABASES=DATABASES, INSTALLED_APPS=INSTALLED_APPS)
+django.setup()
+
+from website.mainwebsite.models import leaderboard
 
 BOARD_WIDTH = 4
 BOARD_HEIGHT = 4
@@ -192,11 +209,20 @@ def quit():
     pygame.quit()
     if os.path.isfile("website/authinfo.txt"):
         os.remove("website/authinfo.txt")
-    browser = webdriver.Firefox(executable_path = 'res/geckodriver')
-    browser.get('http://localhost:8000/logout')
-    time.sleep(2)
-    browser.close()
+        browser = openbrowser()
+        browser.get('http://localhost:8000/logout')
+        time.sleep(2)
+        browser.close()
     sys.exit()
+
+def openbrowser():
+    if os.name == 'nt':
+        try: browser = webdriver.Firefox(executable_path = 'res/geckodriver.exe')
+        except: browser = webdriver.Chrome('res/chromedriver.exe')
+    else:
+        try: browser = webdriver.Firefox(executable_path = 'res/geckodriver')
+        except: browser = webdriver.Chrome('res/chromedriver')
+    return browser
 
 def mainmenu():
     ''' Main Menu of the game '''
@@ -220,7 +246,7 @@ def mainmenu():
             muted = not muted
 
         if draw_button('Play', "Green", BUTTON_FONT_SIZE, 200):
-            browser = webdriver.Firefox(executable_path = 'res/geckodriver')
+            browser = openbrowser()
             browser.get('http://localhost:8000/login')
             waitForLogin()
             time.sleep(1)
@@ -228,7 +254,7 @@ def mainmenu():
             return
         elif draw_button('Quit', "Red", BUTTON_FONT_SIZE, 410): quit()
         elif draw_button('Leaderboard', "Blue", BUTTON_FONT_SIZE, 305):
-            browser = webdriver.Firefox(executable_path = 'res/geckodriver')
+            browser = openbrowser()
             browser.get('http://localhost:8000/leaderboard')
 
         pygame.display.update()
@@ -244,9 +270,18 @@ def waitForLogin():
         username = ((authinfo.readlines())[0].split())[0]
         print("\nLogged in as user:", username)
 
+'''def updateLeaderboard(score):
+    global username
+    if score <= 64
+    user_record = leaderboard.objects.get(username=username)
+    if user_record.exists():
+        user_record.total_played += 1
+        if user_record.score <= 32
+    new_entry = leaderboard(username=username, total_played=1)'''
+
 def game():
     ''' The main game function '''
-    global FPS_CLOCK, WINDOW, FONT_OBJ, TITLE_OBJ, BLOCK_BOARD, BG_OBJ, MUTE_OBJ, UNMUTE_OBJ, BACK_OBJ, muted
+    global FPS_CLOCK, WINDOW, FONT_OBJ, TITLE_OBJ, BLOCK_BOARD, BG_OBJ, MUTE_OBJ, UNMUTE_OBJ, BACK_OBJ, muted, current_score
 
     pygame.init()
     FPS_CLOCK = pygame.time.Clock()
@@ -284,7 +319,9 @@ def game():
         pygame.draw.rect(WINDOW, Color.DeepOrange.value, BLOCK_BOARD, BOARD_OUTER_LINE_WIDTH)
 
         for event in pygame.event.get():
-            if event.type == QUIT: quit()
+            if event.type == QUIT:
+                updateLeaderboard(current_score)
+                quit()
             elif event.type == KEYUP:
                 if event.key in (K_LEFT, K_a): main_board.slide(Direction.Left)
                 elif event.key in (K_RIGHT, K_d): main_board.slide(Direction.Right)
@@ -426,4 +463,5 @@ def mouse_status(x, y, w, h):
 if __name__ == "__main__":
     try: game()
     except KeyboardInterrupt: pass
+    updateLeaderboard(current_score)
     quit()
