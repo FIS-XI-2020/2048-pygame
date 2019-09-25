@@ -8,12 +8,23 @@
         ~ class XII A, 2019-20, FIS
 """
 
-import pygame, sys, random, itertools, time, os, django
-from selenium import webdriver
+import pygame, sys, random, itertools, time, os, django, subprocess
 from pygame.locals import *
 from enum import Enum
-from django.conf import settings
-from website.website.settings import DATABASES
+
+# import selenium's webdriver
+try: from selenium import webdriver
+except ImportError:
+    print("Selenium is not installed. Install it using pip")
+    sys.exit()
+
+# import django stuff
+try:
+    from django.conf import settings
+    from website.website.settings import DATABASES
+except ImportError:
+    print("Django ain't installed you noob! Install it first using pip")
+    sys.exit()
 
 # configure django
 INSTALLED_APPS = [
@@ -28,6 +39,7 @@ INSTALLED_APPS = [
 settings.configure(DATABASES=DATABASES, INSTALLED_APPS=INSTALLED_APPS)
 django.setup()
 
+# import the leaderboard model
 from website.mainwebsite.models import leaderboard
 
 # set some defaults
@@ -224,6 +236,7 @@ class Board:
 
 def mainmenu():
     ''' Main Menu of the game '''
+    ''' TODO: new game and resume button '''
     global BG_OBJ, MUTE_OBJ, UNMUTE_OBJ, BACK_OBJ, muted, browser, current_score
 
     LOGO_OBJ = pygame.image.load("res/logo.png").convert_alpha()
@@ -355,6 +368,7 @@ def quit():
         browser.get('http://localhost:8000/logout')
         time.sleep(2)
         browser.close()
+    server.terminate()
     sys.exit()
 
 def openbrowser():
@@ -526,6 +540,11 @@ def mouse_status(x, y, w, h):
     return False, False
 
 if __name__ == "__main__":
+    # start the django server first
+    runcommand = 'python manage.py runserver'
+    server = subprocess.Popen(runcommand, cwd='website', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    # launch the game
     try: game()
     except KeyboardInterrupt: pass
     updateLeaderboard(current_score)

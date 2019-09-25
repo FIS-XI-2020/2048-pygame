@@ -55,6 +55,6 @@ def loginpage(request):
     return render(request, 'login.html')
 
 def leaderboardpage(request):
-    entries = leaderboard.objects.order_by('-top_score', '-total_played').all()
+    entries = leaderboard.objects.order_by('-top_score', 'total_played').all()
     entries_iterable = zip(entries, range(1, len(entries) + 1))
     return render(request, 'leaderboard.html', {'leaderboard':entries_iterable})
