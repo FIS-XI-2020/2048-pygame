@@ -1,11 +1,13 @@
+#!/usr/bin/env python3
+
 """
-    2048 in Python implemented using pygame and django
+    The 2048 game implemented in Python using pygame and django
 
     CBSE Computer Science project by:
         Adithya R (@ghostrider-reborn)
         Mohan S (@Autobahn1racer)
         Vansh U
-        ~ class XII A, 2019-20, FIS
+        ~ Class XII A, 2019-20, FIS
 """
 
 import pygame, sys, random, itertools, time, os, django, subprocess
@@ -15,15 +17,22 @@ from enum import Enum
 # import selenium's webdriver
 try: from selenium import webdriver
 except ImportError:
-    print("Selenium is not installed. Install it using pip")
+    print("\nSelenium is not installed. Install it using pip")
+    sys.exit()
+
+# import psutil for killing the django server
+# Q: why psutil? why not os.kill() ?
+# A: cuz it's cross-platform i.e. works in windows and linux,
+#    and it can be used to terminate child processes too
+try: from psutil import Process
+except ImportError:
+    print("\n'psutil' module is not installed. Install it using pip")
     sys.exit()
 
 # import django stuff
-try:
-    from django.conf import settings
-    from website.website.settings import DATABASES
+try: from django.conf import settings
 except ImportError:
-    print("Django ain't installed you noob! Install it first using pip")
+    print("\nDjango ain't installed you noob! Install it first using pip")
     sys.exit()
 
 # configure django
@@ -36,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'website.mainwebsite'
 ]
+from website.website.settings import DATABASES
 settings.configure(DATABASES=DATABASES, INSTALLED_APPS=INSTALLED_APPS)
 django.setup()
 
@@ -73,7 +83,7 @@ class Result(Enum):
     Win = 1
     Lost = 0
 
-# define some colours
+# define some colours in RGB
 class Color(Enum):
     White = (255, 255, 255)
     DeepOrange = (234, 120, 33)
@@ -124,7 +134,7 @@ COLOR_SWITCHER = {
     2048: Color.Block2048.value,
 }
 
-# set slide directions
+# set slide direction macros
 class Direction(Enum):
     Up = 0
     Down = 1
@@ -137,9 +147,9 @@ SLIDE_SWITCHER = {
     Direction.Left: [0, BOARD_WIDTH, 1, 'coordinate_y', 'coordinate_x', BOARD_HEIGHT],
     Direction.Right: [BOARD_WIDTH - 1, -1, -1, 'coordinate_y', 'coordinate_x', BOARD_HEIGHT],
 }
-
-# Movement of blocks, mergeing, generating new blocks etc
+ 
 class Block:
+    ''' Parameters for each block '''
     def __init__(self, x=random.randint(0, 3), y=random.randint(0, 3)):
         self.coordinate_x = x
         self.coordinate_y = y
@@ -150,35 +160,41 @@ class Block:
         self.next_coordinate_y = y
 
 class Board:
+    ''' Movement of blocks, mergeing, generating new blocks etc '''
     def __init__(self):
         self.blocks = [Block(), ]
         self.max_score = max([block.score for block in self.blocks])
         self.next_direction = Direction.Up
 
     def handle_block_slide(self, direction):
-        ''' Moves the blocks in the specified direction '''
+        ''' Moves the blocks in the specified direction
+            TODO: improve the logic and make sure when a block gets merged,
+                  the surrounding blocks follow order and fill up the space '''
         self.next_direction = direction
         # check each row/column (depending on direction)
         for line_col_idx in range(SLIDE_SWITCHER[direction][5]):
             # blocks in same row/column, idx in current row/column
-            current_blocks = [(block, getattr(block, SLIDE_SWITCHER[direction][4])) for block in self.blocks if
-                              getattr(block, SLIDE_SWITCHER[direction][3]) == line_col_idx]
+            current_blocks = [(block, getattr(block, SLIDE_SWITCHER[direction][4]))
+                              for block in self.blocks
+                              if getattr(block, SLIDE_SWITCHER[direction][3]) == line_col_idx]
             # search: [idx_boundary -> idx_move_start) by idx_step
-            current_blocks.sort(key=lambda row: row[1], reverse=False if (SLIDE_SWITCHER[direction][2] == 1) else True)
+            current_blocks.sort(key=lambda row: row[1], reverse=False
+                                if (SLIDE_SWITCHER[direction][2] == 1) else True)
             previous_idx = -1
             for block in current_blocks:
                 if block[1] == SLIDE_SWITCHER[direction][0]:  # element on boundary
                     setattr(block[0], 'slide_enable', False)
                     setattr(block[0], 'next_' + SLIDE_SWITCHER[direction][3], line_col_idx)
                     setattr(block[0], 'next_' + SLIDE_SWITCHER[direction][4], SLIDE_SWITCHER[direction][0])
-                else:  # not boundary ehlement
+                else:  # not a boundary element
                     if (block[1] - SLIDE_SWITCHER[direction][2] not in [row[1] for row in current_blocks]) or \
                             (getattr(current_blocks[previous_idx][0], 'slide_enable') is True):
                         setattr(block[0], 'slide_enable', True)
                         setattr(block[0], 'next_' + SLIDE_SWITCHER[direction][3], line_col_idx)
-                        # calc next coordinate
+                        # calculate the next coordinate
                         if previous_idx == -1:
-                            setattr(block[0], 'next_' + SLIDE_SWITCHER[direction][4], SLIDE_SWITCHER[direction][0])
+                            setattr(block[0], 'next_' + SLIDE_SWITCHER[direction][4],
+                                    SLIDE_SWITCHER[direction][0])
                         else:
                             setattr(block[0], 'next_' + SLIDE_SWITCHER[direction][4],
                                     getattr(current_blocks[previous_idx][0],
@@ -186,7 +202,7 @@ class Board:
                 previous_idx += 1
 
     def slide_block(self):
-        ''' Moves the blocks in the specified direction by 1 unit '''
+        ''' Shift a block from one to another location on the board '''
         for block in self.blocks:
             if block.slide_enable:
                 block.coordinate_x = block.next_coordinate_x
@@ -198,11 +214,13 @@ class Board:
         ''' Merges the blocks of same value '''
         for line_col_idx in range(SLIDE_SWITCHER[direction][5]):
             current_blocks = [(block, getattr(block, SLIDE_SWITCHER[direction][4]))
-                              for block in self.blocks if getattr(block, SLIDE_SWITCHER[direction][3]) == line_col_idx]
+                              for block in self.blocks
+                              if getattr(block, SLIDE_SWITCHER[direction][3]) == line_col_idx]
             if len(current_blocks) <= 1: continue
             else:
                 # merge: (idx_move_start -> idx_boundary] by idx_step
-                current_blocks.sort(key=lambda row: row[1], reverse=False if (SLIDE_SWITCHER[direction][2] == -1) else True)
+                current_blocks.sort(key=lambda row: row[1], reverse=False
+                                    if (SLIDE_SWITCHER[direction][2] == -1) else True)
                 next_idx = 1
                 for block in current_blocks:
                     if next_idx >= len(current_blocks): break
@@ -213,7 +231,7 @@ class Board:
                     next_idx += 1
 
     def generate_block(self):
-        ''' Generates a random block and inserts it anywhere '''
+        ''' Generates a random block and inserts it anywhere on the board '''
         if len(self.blocks) >= (BOARD_WIDTH * BOARD_HEIGHT): return
         all_position = [(x, y) for x, y in itertools.product(range(BOARD_WIDTH), range(BOARD_HEIGHT))]
         for block in self.blocks:
@@ -230,25 +248,29 @@ class Board:
         self.merge_block(direction)
         self.generate_block()
 
-    # default functions to be used from main()
+    # used from main() to fetch the current score and number of blocks
     get_max_score = lambda self: max([block.score for block in self.blocks])
     get_block_num = lambda self: len(self.blocks)
 
 def mainmenu():
     ''' Main Menu of the game '''
-    ''' TODO: new game and resume button '''
+    ''' TODO: restart and resume button '''
     global BG_OBJ, MUTE_OBJ, UNMUTE_OBJ, BACK_OBJ, muted, browser, current_score
 
+    # load the 2048 logo
     LOGO_OBJ = pygame.image.load("res/logo.png").convert_alpha()
     LOGO_RECT = LOGO_OBJ.get_rect(centerx = (WINDOW_WIDTH // 2), top = 75)
 
     while True:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: quit()
+            if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
+                quit()
+
+        # render the background and logo
         WINDOW.blit(BG_OBJ, (0, 0))
         WINDOW.blit(LOGO_OBJ, LOGO_RECT)
 
-        # Mute/unmute button
+        # mute/unmute button
         if not muted: WINDOW.blit(MUTE_OBJ, (720, 15))
         else: WINDOW.blit(UNMUTE_OBJ, (720, 15))
         if mouse_status(725, 20, 50, 50)[1]:
@@ -261,14 +283,11 @@ def mainmenu():
         if draw_button('Play', "Green", BUTTON_FONT_SIZE, 200):
             openLoginPage()
             return
-        # the quit button - when clicked, updates score in the leaderboard if
-        # the user played the game, and then quits
-        elif draw_button('Quit', "Red", BUTTON_FONT_SIZE, 410):
-            if current_score > 0: updateLeaderboard(current_score)
-            quit()
+        # the quit button
+        elif draw_button('Quit', "Red", BUTTON_FONT_SIZE, 410): quit()
         # leaderboard button - launches the leaderboard page
         elif draw_button('Leaderboard', "Blue", BUTTON_FONT_SIZE, 305):
-            browser = openbrowser()
+            browser = openBrowser()
             browser.get('http://localhost:8000/leaderboard')
 
         pygame.display.update()
@@ -276,25 +295,27 @@ def mainmenu():
 
 def game():
     ''' The main game '''
-    global FPS_CLOCK, WINDOW, FONT_OBJ, TITLE_OBJ, BLOCK_BOARD, BG_OBJ, MUTE_OBJ, UNMUTE_OBJ, BACK_OBJ, muted, current_score
+    global FPS_CLOCK, WINDOW, FONT_OBJ, TITLE_OBJ, BLOCK_BOARD, BG_OBJ, \
+           MUTE_OBJ, UNMUTE_OBJ, BACK_OBJ, muted, current_score
 
     # initialize the pygame window
     pygame.init()
     FPS_CLOCK = pygame.time.Clock()
     WINDOW = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-    BLOCK_BOARD = pygame.Rect(X_MARGIN - BOARD_OUTER_LINE_WIDTH, Y_MARGIN - BOARD_OUTER_LINE_WIDTH,
+    BLOCK_BOARD = pygame.Rect(X_MARGIN - BOARD_OUTER_LINE_WIDTH,
+                              Y_MARGIN - BOARD_OUTER_LINE_WIDTH,
                               (BLOCK_SIZE + MARGIN_SIZE) * BOARD_WIDTH + BOARD_OUTER_LINE_WIDTH * 2 - MARGIN_SIZE,
                               (BLOCK_SIZE + MARGIN_SIZE) * BOARD_HEIGHT + BOARD_OUTER_LINE_WIDTH * 2 - MARGIN_SIZE)
     # set font
     FONT_OBJ = pygame.font.Font('res/fonts/Slate.ttf', FONT_SIZE)
     TITLE_OBJ = pygame.font.Font('res/fonts/PixelOperator-Bold.ttf', TITLE_SIZE)
 
-    # initialize the 2048 board
+    # initialize the game board
     main_board = Board()
     title_text = 'Your Score: '
     muted = False
 
-    # load em images
+    # load em all images
     BG_OBJ = pygame.image.load("res/background.jpg")
     MUTE_OBJ = pygame.image.load("res/unmute.png").convert_alpha()
     UNMUTE_OBJ = pygame.image.load("res/mute.png").convert_alpha()
@@ -308,11 +329,11 @@ def game():
 
     # Main game loop
     while True:
-        """
-        DEBUG
-        handle_win_or_lost(Result.Win)
-        handle_win_or_lost(Result.Lost)
-        """
+        # for debugging/testing:
+        #handle_win_or_lost(Result.Win)
+        #handle_win_or_lost(Result.Lost)
+
+        # render the background and backbutton
         WINDOW.blit(BG_OBJ, (0, 0))
         WINDOW.blit(BACK_OBJ, (20, 20))
         pygame.draw.rect(WINDOW, Color.DeepOrange.value, BLOCK_BOARD, BOARD_OUTER_LINE_WIDTH)
@@ -330,7 +351,7 @@ def game():
                 elif event.key in (K_DOWN, K_s): main_board.slide(Direction.Down)
                 elif event.key == K_ESCAPE: mainmenu()
 
-        # Mute/unmute button
+        # mute/unmute button
         if not muted: WINDOW.blit(MUTE_OBJ, (720, 15))
         else: WINDOW.blit(UNMUTE_OBJ, (720, 15))
         if mouse_status(725, 20, 50, 50)[1]:
@@ -338,20 +359,24 @@ def game():
             else: pygame.mixer.music.unpause()
             muted = not muted
 
-        # Back button (go to main menu)
+        # back button (go to main menu)
         if mouse_status(20, 20, 50, 50)[1]: mainmenu()
 
+        # export the current score and refresh the game board
         current_score = main_board.get_max_score()
         draw_blocks(main_board)
 
         if len(main_board.blocks) >= (BOARD_WIDTH * BOARD_HEIGHT):
+            # blocks have filled the screen -> the user lost
             pygame.time.wait(1000)
             handle_win_or_lost(Result.Lost)
             main_board = Board()
         elif current_score < 2048:
+            # the user is still playing, update the score
             title = title_text + str(current_score)
             draw_title(title)
         else:
+            # the user won!
             pygame.time.wait(1000)
             handle_win_or_lost(Result.Win)
             main_board = Board()
@@ -360,29 +385,54 @@ def game():
         FPS_CLOCK.tick(FPS)
 
 def quit():
-    ''' Neatly logout and quit the game '''
+    ''' Neatly logout, wrap up everything and quit the game '''
+    global server
+    
+    # exit pygame
     pygame.quit()
+
+    # trigger updateLeaderboard() if the user played in the current session
+    if current_score > 0: updateLeaderboard(current_score)
+    
+    # logout and delete current session user
     if os.path.isfile("website/authinfo.txt"):
+        print("\nLogging out ...")
         os.remove("website/authinfo.txt")
-        browser = openbrowser()
+        browser = openBrowser()
         browser.get('http://localhost:8000/logout')
         time.sleep(2)
         browser.close()
-    server.terminate()
-    sys.exit()
 
-def openbrowser():
-    ''' Opens a selenium webdriver browser window '''
+    # kill the django server
+    for proc in Process(server.pid).children(recursive=True): proc.kill()
+    server.terminate()
+    exit()
+
+def openBrowser():
+    ''' Opens a selenium webdriver browser window and returns the
+        browser object. Currently supports firefox and chrome only
+        TODO: support all browsers and use the default browser automatically,
+              probably at some point in the future when python's webbrowser
+              module supports closing the browser window '''
+    chrome_exec = "res/chromedriver"
+    firefox_exec = "res/geckodriver"
+
     if os.name == 'nt':
-        try: browser = webdriver.Firefox(executable_path = 'res/geckodriver.exe')
-        except: browser = webdriver.Chrome('res/chromedriver.exe')
-    else:
-        try: browser = webdriver.Firefox(executable_path = 'res/geckodriver')
-        except: browser = webdriver.Chrome('res/chromedriver')
+        # .exe extension in case of windows
+        chrome_exec += '.exe'
+        firefox_exec += '.exe'
+    
+    try: browser = webdriver.Firefox(executable_path = firefox_exec)
+    except:
+        try: browser = webdriver.Chrome(chrome_exec)
+        except:
+            print("Either firefox or chrome is required!")
+            quit()
+
     return browser
 
 def openLoginPage():
-    ''' Opens the register/login page and waits until the user has logged in
+    ''' Opens the register/login page and waits until the user has logged in,
         and exports the username once logged in '''
     global username
 
@@ -393,7 +443,7 @@ def openLoginPage():
     # this file is deleted when the user exits the game
     # TODO: use a more secure method for checking login
     if not os.path.isfile("website/authinfo.txt"):
-        browser = openbrowser()
+        browser = openBrowser()
         browser.get('http://localhost:8000/login')
         while not os.path.isfile("website/authinfo.txt"):
             print("User has not logged in yet! Waiting for 2 secs...")
@@ -417,18 +467,22 @@ def updateLeaderboard(score):
     elif score <= 1024: level = "Pro"
     else: level = "Champion"
 
-    # check and update entry of user if already exists, otherwise create new
     if leaderboard.objects.filter(username=username).exists():
+        # the player's record already exists
         user_record = leaderboard.objects.get(username=username)
         user_record.total_played += 1
+        
         if user_record.total_played > 8 and score == 2048:
             user_record.player_level = "Veteran"
+            
         # update the score only if score is higher than the existing top score
         if score > user_record.top_score:
             user_record.top_score = score
             user_record.player_level = level
     else:
-        user_record = leaderboard(username=username, total_played=1, top_score=score, player_level=level)
+        # the user is playing for the first time
+        user_record = leaderboard(username=username, total_played=1,
+                                  top_score=score, player_level=level)
 
     user_record.save()
 
@@ -451,7 +505,7 @@ def draw_blocks(board_in):
         WINDOW.blit(text_surface_obj, text_rect_obj)
 
 def draw_title(title, y = False, color = TEXT_COLOR):
-    ''' Render a title text according to TITLE_OBJ '''
+    ''' Render a title text according to TITLE_OBJ, with y coords if necessary '''
     text_surface_obj = TITLE_OBJ.render(title, True, color)
     if y: text_rect_obj = text_surface_obj.get_rect(top = y, centerx = WINDOW_WIDTH // 2)
     else: text_rect_obj = text_surface_obj.get_rect(center = TITLE_CENTER)
@@ -502,8 +556,8 @@ def handle_win_or_lost(result):
         FPS_CLOCK.tick(FPS)
 
 def draw_button(text, colorname, fontsize, button_y):
-    ''' Function to create a center aligned button with text in it and highlight
-        it when mouse is hovered on it. Also returns True when clicked on it. '''
+    ''' Creates a center aligned button with text in it and highlight it when
+        when mouse is hovered on it. Also returns True when clicked on it. '''
     color = eval('Color.%s.value' % colorname)
     font = pygame.font.Font("res/fonts/PixelOperator8-Bold.ttf", fontsize)
     text_ =  font.render(text, False, Color.Black.value)
@@ -518,7 +572,7 @@ def draw_button(text, colorname, fontsize, button_y):
     text_rect = text_.get_rect(top = button_y+10, centerx = (WINDOW_WIDTH // 2))
     pygame.draw.rect(WINDOW, color, [button_x, button_y, button_w, button_h])
 
-    # Change draw_button colour to light on mouseover
+    # change button colour to light on mouseover
     if mouse_status(button_x, button_y, button_w, button_h)[0]:
         color = eval('Color.%s.value' % ("Light"+colorname))
         pygame.draw.rect(WINDOW, color, [button_x, button_y, button_w, button_h])
@@ -540,12 +594,14 @@ def mouse_status(x, y, w, h):
     return False, False
 
 if __name__ == "__main__":
-    # start the django server first
-    runcommand = 'python manage.py runserver'
-    server = subprocess.Popen(runcommand, cwd='website', stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    # run the django server in the background
+    if os.name == 'nt': python_bin = 'python'
+    else: python_bin = 'python3'
+    server = subprocess.Popen('%s manage.py runserver' % python_bin,
+                              cwd='website', stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT)
 
-    # launch the game
+    # launch the game and make sure we quit neatly
     try: game()
     except KeyboardInterrupt: pass
-    updateLeaderboard(current_score)
     quit()
