@@ -76,8 +76,9 @@ WSGI_APPLICATION = 'website.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'game_data.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': '2048_gamedata',
+        'USER': 'root'
     }
 }
 

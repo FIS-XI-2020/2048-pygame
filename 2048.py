@@ -597,7 +597,7 @@ if __name__ == "__main__":
     # run the django server in the background
     if os.name == 'nt': python_bin = 'python'
     else: python_bin = 'python3'
-    server = subprocess.Popen('%s manage.py runserver' % python_bin,
+    server = subprocess.Popen([python_bin, 'manage.py runserver'],
                               cwd='website', stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT)
 
