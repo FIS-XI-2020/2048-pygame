@@ -7,6 +7,7 @@ from mainwebsite.models import leaderboard
 # Default users (username - password):
 # admin - qwertyarea51
 # hackerman - lmao123
+# noobmaster - noob6969ma5ter
 def log_in(request):
     ''' Logs a user in based on the POST request.
         Returns False if the credentials are incorrect otherwise True '''
@@ -50,10 +51,10 @@ def loginpage(request):
             # a new user is being registered
             result = register(request)
             if result == 1:
-                return render(request, 'result.html',
+                return render(request, 'incorrect.html',
                               {'msg':'Entered passwords do not match!', 'title':'ERROR!'})
             elif result == 2:
-                return render(request, 'result.html',
+                return render(request, 'incorrect.html',
                               {'msg':'Username already exists! Try another one or login', 'title':'ERROR!'})
             else:
                 return render(request, 'result.html',
@@ -65,7 +66,7 @@ def loginpage(request):
                     authinfo.write(request.POST['username'])
                 return render(request, 'result.html',
                               {'msg':'Logged in succesfully! Redirecting to game ...', 'title':'SUCCESS!'})
-            else: return render(request, 'result.html',
+            else: return render(request, 'incorrect.html',
                                 {'msg':'Incorrect credentials!', 'title':'ERROR!'})
 
     return render(request, 'login.html')

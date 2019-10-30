@@ -1,0 +1,18 @@
+<html>
+<title>{{ title }}</title>
+{% load static %}
+
+<body background="{% static "background.jpg" %}">
+
+	<h2><font color=#1aff1a>{{ msg }}</font><h2>
+
+	<p>
+		<input type="button" value="Go back" onClick="javascript:history.go(-1);">
+	</p>
+	<img src="{% static "incorrect-meme.jpg" %}" alt="HACKERMAN" >
+	<p>
+		<h3><font color="yellow">Developed by the 2048 team.</font></h3>
+		<font color=#FF1A1A>Copyright © 2019. All rights reserved.</font>
+	</p>
+</body>
+</html>

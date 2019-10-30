@@ -147,7 +147,7 @@ SLIDE_SWITCHER = {
     Direction.Left: [0, BOARD_WIDTH, 1, 'coordinate_y', 'coordinate_x', BOARD_HEIGHT],
     Direction.Right: [BOARD_WIDTH - 1, -1, -1, 'coordinate_y', 'coordinate_x', BOARD_HEIGHT],
 }
- 
+
 class Block:
     ''' Parameters for each block '''
     def __init__(self, x=random.randint(0, 3), y=random.randint(0, 3)):
@@ -387,13 +387,13 @@ def game():
 def quit():
     ''' Neatly logout, wrap up everything and quit the game '''
     global server
-    
+
     # exit pygame
     pygame.quit()
 
     # trigger updateLeaderboard() if the user played in the current session
     if current_score > 0: updateLeaderboard(current_score)
-    
+
     # logout and delete current session user
     if os.path.isfile("website/authinfo.txt"):
         print("\nLogging out ...")
@@ -421,7 +421,7 @@ def openBrowser():
         # .exe extension in case of windows
         chrome_exec += '.exe'
         firefox_exec += '.exe'
-    
+
     try: browser = webdriver.Firefox(executable_path = firefox_exec)
     except:
         try: browser = webdriver.Chrome(chrome_exec)
@@ -460,9 +460,8 @@ def updateLeaderboard(score):
     global username
 
     # get the level based on the score
-    if score <= 64: level = "Beginner"
+    if score <= 16: level = "Beginner"
     elif score <= 64: level = "Amateur"
-    elif score <= 128: level = "Learner"
     elif score <= 256: level = "Semi-pro"
     elif score <= 1024: level = "Pro"
     else: level = "Champion"
@@ -471,10 +470,10 @@ def updateLeaderboard(score):
         # the player's record already exists
         user_record = leaderboard.objects.get(username=username)
         user_record.total_played += 1
-        
-        if user_record.total_played > 8 and score == 2048:
+
+        if user_record.total_played >= 10 and score == 2048:
             user_record.player_level = "Veteran"
-            
+
         # update the score only if score is higher than the existing top score
         if score > user_record.top_score:
             user_record.top_score = score
@@ -597,7 +596,7 @@ if __name__ == "__main__":
     # run the django server in the background
     if os.name == 'nt': python_bin = 'python'
     else: python_bin = 'python3'
-    server = subprocess.Popen([python_bin, 'manage.py runserver'],
+    server = subprocess.Popen('%s manage.py runserver' % python_bin,
                               cwd='website', stdout=subprocess.PIPE,
                               stderr=subprocess.STDOUT)
 

@@ -78,7 +78,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': '2048_gamedata',
-        'USER': 'root'
+        'USER': 'root',
+        'PASSWORD': '0021'
     }
 }
 
