@@ -322,7 +322,7 @@ def game():
     BACK_OBJ = pygame.image.load("res/backbutton.png").convert_alpha()
 
     # play some tunes and start with the main menu
-    pygame.display.set_caption('2048 Game for MeAndTheBois™')
+    pygame.display.set_caption('2048™ GAME')
     pygame.mixer.music.load('res/music.mp3')
     pygame.mixer.music.play(-1)
     mainmenu()
